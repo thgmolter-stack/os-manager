@@ -195,39 +195,41 @@ const ServiceOrders = () => {
               Nova OS
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white">
             <DialogHeader>
-              <DialogTitle>Criar Nova Ordem de Serviço</DialogTitle>
+              <DialogTitle className="text-slate-900">Criar Nova Ordem de Serviço</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreateOS} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="descricao">Descrição *</Label>
+                  <Label htmlFor="descricao" className="text-slate-700 font-medium">Descrição *</Label>
                   <Textarea
                     id="descricao"
                     placeholder="Descreva o serviço a ser realizado"
                     value={newOS.descricao}
                     onChange={(e) => setNewOS({...newOS, descricao: e.target.value})}
-                    className="min-h-[100px]"
+                    className="min-h-[100px] bg-white border-slate-300 text-slate-900 placeholder:text-slate-500"
                   />
                 </div>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="tipo_servico">Tipo de Serviço *</Label>
+                    <Label htmlFor="tipo_servico" className="text-slate-700 font-medium">Tipo de Serviço *</Label>
                     <Input
                       id="tipo_servico"
                       placeholder="Ex: Manutenção, Instalação"
                       value={newOS.tipo_servico}
                       onChange={(e) => setNewOS({...newOS, tipo_servico: e.target.value})}
+                      className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-500"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="responsavel">Responsável *</Label>
+                    <Label htmlFor="responsavel" className="text-slate-700 font-medium">Responsável *</Label>
                     <Input
                       id="responsavel"
                       placeholder="Nome do técnico responsável"
                       value={newOS.responsavel}
                       onChange={(e) => setNewOS({...newOS, responsavel: e.target.value})}
+                      className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-500"
                     />
                   </div>
                 </div>
@@ -235,55 +237,60 @@ const ServiceOrders = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="prioridade">Prioridade *</Label>
+                  <Label htmlFor="prioridade" className="text-slate-700 font-medium">Prioridade *</Label>
                   <Select value={newOS.prioridade} onValueChange={(value) => setNewOS({...newOS, prioridade: value})}>
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white border-slate-300 text-slate-900">
                       <SelectValue placeholder="Selecione a prioridade" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border-slate-300">
                       {priorityOptions.map(priority => (
-                        <SelectItem key={priority} value={priority}>{priority}</SelectItem>
+                        <SelectItem key={priority} value={priority} className="text-slate-900 hover:bg-slate-100">
+                          {priority}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="data_atendimento">Data de Atendimento</Label>
+                  <Label htmlFor="data_atendimento" className="text-slate-700 font-medium">Data de Atendimento</Label>
                   <Input
                     id="data_atendimento"
                     type="datetime-local"
                     value={newOS.data_atendimento}
                     onChange={(e) => setNewOS({...newOS, data_atendimento: e.target.value})}
+                    className="bg-white border-slate-300 text-slate-900"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="local">Local *</Label>
+                  <Label htmlFor="local" className="text-slate-700 font-medium">Local *</Label>
                   <Input
                     id="local"
                     placeholder="Local do serviço"
                     value={newOS.local}
                     onChange={(e) => setNewOS({...newOS, local: e.target.value})}
+                    className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="equipamento">Equipamento *</Label>
+                  <Label htmlFor="equipamento" className="text-slate-700 font-medium">Equipamento *</Label>
                   <Input
                     id="equipamento"
                     placeholder="Equipamento a ser atendido"
                     value={newOS.equipamento}
                     onChange={(e) => setNewOS({...newOS, equipamento: e.target.value})}
+                    className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-500"
                   />
                 </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)} className="text-slate-700 border-slate-300">
                   Cancelar
                 </Button>
-                <Button type="submit" className="bg-gradient-to-r from-blue-600 to-cyan-600">
+                <Button type="submit" className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
                   Criar OS
                 </Button>
               </div>
