@@ -158,7 +158,7 @@ const ServiceOrders = () => {
     const matchesSearch = os.numero_os?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          os.descricao?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          os.responsavel?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !statusFilter || os.status === statusFilter;
+    const matchesStatus = !statusFilter || statusFilter === 'all' || os.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
