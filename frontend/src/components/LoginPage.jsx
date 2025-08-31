@@ -230,6 +230,24 @@ const LoginPage = () => {
         <div className="text-center mt-6 text-sm text-slate-500">
           Sistema desenvolvido para gestão eficiente de ordens de serviço
         </div>
+
+        {/* Copyright Information */}
+        <div className="text-center mt-4 p-4 bg-white/50 backdrop-blur-sm rounded-lg border border-white/20">
+          <div className="text-xs text-slate-600 space-y-1">
+            <div className="font-semibold text-slate-800">
+              OS Manager v1.0.0
+            </div>
+            <div>
+              Desenvolvido por <span className="font-medium text-slate-800">Thiago de Souza Molter</span>
+            </div>
+            <div>
+              © 2025 - Todos os direitos reservados
+            </div>
+            <div className="text-slate-500">
+              31 de Agosto de 2025
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
