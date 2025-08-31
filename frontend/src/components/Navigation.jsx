@@ -34,6 +34,12 @@ const Navigation = () => {
       icon: Package,
       label: 'Materiais',
       description: 'Solicitações de material'
+    },
+    {
+      path: '/reports',
+      icon: BarChart3,
+      label: 'Relatórios',
+      description: 'Análises e métricas'
     }
   ];
 
