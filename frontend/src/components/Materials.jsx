@@ -139,7 +139,7 @@ const Materials = () => {
     const matchesSearch = material.descricao?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          getOSNumber(material.os_id)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          material.solicitado_por?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !statusFilter || material.status === statusFilter;
+    const matchesStatus = !statusFilter || statusFilter === 'all' || material.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
