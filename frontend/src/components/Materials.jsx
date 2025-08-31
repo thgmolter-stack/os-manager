@@ -175,20 +175,20 @@ const Materials = () => {
               Solicitar Material
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md bg-white">
             <DialogHeader>
-              <DialogTitle>Solicitar Novo Material</DialogTitle>
+              <DialogTitle className="text-slate-900">Solicitar Novo Material</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreateMaterial} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="os_id">Ordem de Serviço *</Label>
+                <Label htmlFor="os_id" className="text-slate-700 font-medium">Ordem de Serviço *</Label>
                 <Select value={newMaterial.os_id} onValueChange={(value) => setNewMaterial({...newMaterial, os_id: value})}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white border-slate-300 text-slate-900">
                     <SelectValue placeholder="Selecione uma OS" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white border-slate-300">
                     {serviceOrders.map(os => (
-                      <SelectItem key={os.id} value={os.id}>
+                      <SelectItem key={os.id} value={os.id} className="text-slate-900 hover:bg-slate-100">
                         {os.numero_os} - {os.descricao.substring(0, 50)}...
                       </SelectItem>
                     ))}
@@ -197,17 +197,18 @@ const Materials = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="descricao">Descrição do Material *</Label>
+                <Label htmlFor="descricao" className="text-slate-700 font-medium">Descrição do Material *</Label>
                 <Input
                   id="descricao"
                   placeholder="Ex: Cabo de rede CAT6, Parafusos..."
                   value={newMaterial.descricao}
                   onChange={(e) => setNewMaterial({...newMaterial, descricao: e.target.value})}
+                  className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-500"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="quantidade">Quantidade *</Label>
+                <Label htmlFor="quantidade" className="text-slate-700 font-medium">Quantidade *</Label>
                 <Input
                   id="quantidade"
                   type="number"
@@ -215,14 +216,15 @@ const Materials = () => {
                   placeholder="Digite a quantidade"
                   value={newMaterial.quantidade}
                   onChange={(e) => setNewMaterial({...newMaterial, quantidade: e.target.value})}
+                  className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-500"
                 />
               </div>
 
               <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)} className="text-slate-700 border-slate-300">
                   Cancelar
                 </Button>
-                <Button type="submit" className="bg-gradient-to-r from-green-600 to-emerald-600">
+                <Button type="submit" className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
                   Solicitar
                 </Button>
               </div>
