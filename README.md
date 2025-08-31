@@ -5,7 +5,7 @@ wget https://github.com/thgmolter-stack/os-manager/tree/main/app
 
 DOCKER (Recomendado):
 # Setup automático em 5 minutos
-git clone https://github.com/thiagomolter/os-manager.git
+git clone https://github.com/thgmolter-stack/os-manager/tree/main/app.git
 cd os-manager
 ./setup.sh
 # Escolha opção 1: Instalação completa
