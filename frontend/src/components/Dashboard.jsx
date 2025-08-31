@@ -229,21 +229,30 @@ const Dashboard = () => {
             <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
               <h3 className="font-semibold text-blue-900 mb-2">Nova OS</h3>
               <p className="text-sm text-blue-700 mb-3">Criar uma nova ordem de serviço</p>
-              <button className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+              <button 
+                onClick={() => navigate('/service-orders')}
+                className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
                 Criar OS
               </button>
             </div>
             <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
               <h3 className="font-semibold text-green-900 mb-2">Materiais</h3>
               <p className="text-sm text-green-700 mb-3">Gerenciar solicitações de material</p>
-              <button className="text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+              <button 
+                onClick={() => navigate('/materials')}
+                className="text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+              >
                 Ver Materiais
               </button>
             </div>
             <div className="p-4 bg-gradient-to-r from-purple-50 to-violet-50 rounded-lg border border-purple-200">
               <h3 className="font-semibold text-purple-900 mb-2">Relatórios</h3>
               <p className="text-sm text-purple-700 mb-3">Visualizar relatórios de performance</p>
-              <button className="text-sm bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+              <button 
+                onClick={() => navigate('/dashboard')}
+                className="text-sm bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+              >
                 Ver Relatórios
               </button>
             </div>
