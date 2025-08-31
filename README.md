@@ -1,6 +1,6 @@
 DOWNLOAD GRATUITO:
 # Instalação em 3 comandos
-wget https://github.com/thiagomolter/os-manager/releases/download/v1.0.0/os-manager-v1.0.0.zip
+wget https://github.com/thgmolter-stack//os-manager/releases/download/v1.0.0/os-manager-v1.0.0.zip
 unzip os-manager-v1.0.0.zip
 cd os-manager-v1.0.0 && chmod +x setup.sh && ./setup.sh
 
