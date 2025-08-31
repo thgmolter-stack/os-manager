@@ -8,7 +8,8 @@ import {
   Package, 
   LogOut, 
   User,
-  Settings
+  Settings,
+  BarChart3
 } from 'lucide-react';
 
 const Navigation = () => {
