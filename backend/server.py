@@ -1,3 +1,15 @@
+"""
+OS Manager - Sistema de Gestão de Ordens de Serviço
+Backend API desenvolvido em FastAPI
+
+Copyright (c) 2025 Thiago de Souza Molter
+Todos os direitos reservados.
+
+Desenvolvedor: Thiago de Souza Molter
+Data: 31 de Agosto de 2025
+Versão: 1.0.0
+"""
+
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
