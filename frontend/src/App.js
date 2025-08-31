@@ -10,6 +10,7 @@ import LoginPage from "./components/LoginPage";
 import Dashboard from "./components/Dashboard";
 import ServiceOrders from "./components/ServiceOrders";
 import Materials from "./components/Materials";
+import Reports from "./components/Reports";
 import Navigation from "./components/Navigation";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
