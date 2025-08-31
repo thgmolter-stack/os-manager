@@ -1,3 +1,15 @@
+/*
+ * OS Manager - Sistema de Gestão de Ordens de Serviço
+ * Frontend desenvolvido em React
+ * 
+ * Copyright (c) 2025 Thiago de Souza Molter
+ * Todos os direitos reservados.
+ * 
+ * Desenvolvedor: Thiago de Souza Molter
+ * Data: 31 de Agosto de 2025
+ * Versão: 1.0.0
+ */
+
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
