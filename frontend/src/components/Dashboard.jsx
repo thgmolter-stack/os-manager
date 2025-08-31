@@ -250,7 +250,7 @@ const Dashboard = () => {
               <h3 className="font-semibold text-purple-900 mb-2">Relatórios</h3>
               <p className="text-sm text-purple-700 mb-3">Visualizar relatórios de performance</p>
               <button 
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate('/reports')}
                 className="text-sm bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
               >
                 Ver Relatórios
