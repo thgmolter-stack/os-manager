@@ -416,55 +416,58 @@ const ServiceOrders = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
-            <DialogTitle>Editar Ordem de Serviço</DialogTitle>
+            <DialogTitle className="text-slate-900">Editar Ordem de Serviço</DialogTitle>
           </DialogHeader>
           {selectedOS && (
             <form onSubmit={handleUpdateOS} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit_descricao">Descrição</Label>
+                  <Label htmlFor="edit_descricao" className="text-slate-700 font-medium">Descrição</Label>
                   <Textarea
                     id="edit_descricao"
                     value={selectedOS.descricao}
                     onChange={(e) => setSelectedOS({...selectedOS, descricao: e.target.value})}
-                    className="min-h-[100px]"
+                    className="min-h-[100px] bg-white border-slate-300 text-slate-900"
                   />
                 </div>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="edit_status">Status</Label>
+                    <Label htmlFor="edit_status" className="text-slate-700 font-medium">Status</Label>
                     <Select 
                       value={selectedOS.status} 
                       onValueChange={(value) => setSelectedOS({...selectedOS, status: value})}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-white border-slate-300 text-slate-900">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-white border-slate-300">
                         {statusOptions.map(status => (
-                          <SelectItem key={status} value={status}>{status}</SelectItem>
+                          <SelectItem key={status} value={status} className="text-slate-900 hover:bg-slate-100">
+                            {status}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit_responsavel">Responsável</Label>
+                    <Label htmlFor="edit_responsavel" className="text-slate-700 font-medium">Responsável</Label>
                     <Input
                       id="edit_responsavel"
                       value={selectedOS.responsavel}
                       onChange={(e) => setSelectedOS({...selectedOS, responsavel: e.target.value})}
+                      className="bg-white border-slate-300 text-slate-900"
                     />
                   </div>
                 </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)} className="text-slate-700 border-slate-300">
                   Cancelar
                 </Button>
-                <Button type="submit" className="bg-gradient-to-r from-blue-600 to-cyan-600">
+                <Button type="submit" className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
                   Atualizar
                 </Button>
               </div>
