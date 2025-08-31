@@ -109,6 +109,7 @@ function App() {
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/service-orders" element={<ServiceOrders />} />
                   <Route path="/materials" element={<Materials />} />
+                  <Route path="/reports" element={<Reports />} />
                   <Route path="*" element={<Navigate to="/dashboard" />} />
                 </Routes>
               </main>
