@@ -20,6 +20,7 @@ const API = `${BACKEND_URL}/api`;
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState({
     total_os: 0,
     total_materials: 0,
