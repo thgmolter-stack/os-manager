@@ -37,7 +37,7 @@ export const metadata: Metadata = {
       "Serviços especializados em formatação de computadores, consultoria em TI, configuração de redes e produtos digitais de qualidade.",
   },
   verification: {
-    google: "google-site-verification-code-here",
+    google: "google93edd1f8058c089c",
   },
   alternates: {
     canonical: "https://seu-dominio.com",
