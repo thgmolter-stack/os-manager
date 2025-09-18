@@ -221,28 +221,71 @@ export function SiteProvider({ children }: { children: React.ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("siteData")
-      if (saved) {
-        try {
-          const parsedData = JSON.parse(saved)
-          setSiteData({
-            ...defaultSiteData,
-            ...parsedData,
-            requests: Array.isArray(parsedData.requests) ? parsedData.requests : [],
-          })
-        } catch (error) {
-          console.error("Error loading site data:", error)
-          setSiteData(defaultSiteData)
+    const loadData = async () => {
+      try {
+        const response = await fetch("/api/site-data")
+        if (response.ok) {
+          const serverData = await response.json()
+          if (Object.keys(serverData).length > 0) {
+            setSiteData({
+              ...defaultSiteData,
+              ...serverData,
+              requests: Array.isArray(serverData.requests) ? serverData.requests : [],
+            })
+          }
+        }
+      } catch (error) {
+        console.error("Error loading site data from server:", error)
+        // Fallback to localStorage
+        if (typeof window !== "undefined") {
+          const saved = localStorage.getItem("siteData")
+          if (saved) {
+            try {
+              const parsedData = JSON.parse(saved)
+              setSiteData({
+                ...defaultSiteData,
+                ...parsedData,
+                requests: Array.isArray(parsedData.requests) ? parsedData.requests : [],
+              })
+            } catch (error) {
+              console.error("Error loading site data:", error)
+              setSiteData(defaultSiteData)
+            }
+          }
         }
       }
       setIsLoaded(true)
     }
+
+    loadData()
   }, [])
 
   useEffect(() => {
-    if (isLoaded && typeof window !== "undefined") {
-      localStorage.setItem("siteData", JSON.stringify(siteData))
+    if (isLoaded) {
+      const saveData = async () => {
+        try {
+          await fetch("/api/site-data", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(siteData),
+          })
+
+          // Also save to localStorage as backup
+          if (typeof window !== "undefined") {
+            localStorage.setItem("siteData", JSON.stringify(siteData))
+          }
+        } catch (error) {
+          console.error("Error saving site data to server:", error)
+          // Fallback to localStorage only
+          if (typeof window !== "undefined") {
+            localStorage.setItem("siteData", JSON.stringify(siteData))
+          }
+        }
+      }
+
+      saveData()
     }
   }, [siteData, isLoaded])
 
