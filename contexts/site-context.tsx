@@ -212,6 +212,7 @@ interface SiteContextType {
   addRequest: (request: Omit<Request, "id" | "timestamp">) => void
   updateRequestStatus: (id: string, status: Request["status"]) => void
   removeRequest: (id: string) => void
+  generateShareableUrl: () => void
 }
 
 const SiteContext = createContext<SiteContextType | undefined>(undefined)
@@ -221,23 +222,39 @@ export function SiteProvider({ children }: { children: React.ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    const loadData = async () => {
+    const loadData = () => {
       try {
-        const response = await fetch("/api/site-data")
-        if (response.ok) {
-          const serverData = await response.json()
-          if (Object.keys(serverData).length > 0) {
-            setSiteData({
-              ...defaultSiteData,
-              ...serverData,
-              requests: Array.isArray(serverData.requests) ? serverData.requests : [],
-            })
-          }
-        }
-      } catch (error) {
-        console.error("Error loading site data from server:", error)
-        // Fallback to localStorage
         if (typeof window !== "undefined") {
+          const urlParams = new URLSearchParams(window.location.search)
+          const sharedConfig = urlParams.get("config")
+
+          if (sharedConfig) {
+            try {
+              const decodedConfig = JSON.parse(atob(sharedConfig))
+              setSiteData({
+                ...defaultSiteData,
+                ...decodedConfig,
+                requests: Array.isArray(decodedConfig.requests) ? decodedConfig.requests : [],
+              })
+              // Save shared config to localStorage for persistence
+              localStorage.setItem(
+                "siteData",
+                JSON.stringify({
+                  ...defaultSiteData,
+                  ...decodedConfig,
+                  requests: Array.isArray(decodedConfig.requests) ? decodedConfig.requests : [],
+                }),
+              )
+              console.log("[v0] Site data loaded from shared URL")
+              // Clean URL after loading
+              window.history.replaceState({}, document.title, window.location.pathname)
+              setIsLoaded(true)
+              return
+            } catch (error) {
+              console.error("Error parsing shared config:", error)
+            }
+          }
+
           const saved = localStorage.getItem("siteData")
           if (saved) {
             try {
@@ -247,12 +264,18 @@ export function SiteProvider({ children }: { children: React.ReactNode }) {
                 ...parsedData,
                 requests: Array.isArray(parsedData.requests) ? parsedData.requests : [],
               })
+              console.log("[v0] Site data loaded from localStorage")
             } catch (error) {
-              console.error("Error loading site data:", error)
+              console.error("Error parsing saved data:", error)
               setSiteData(defaultSiteData)
             }
+          } else {
+            console.log("[v0] No saved data found, using defaults")
           }
         }
+      } catch (error) {
+        console.error("Error loading site data:", error)
+        setSiteData(defaultSiteData)
       }
       setIsLoaded(true)
     }
@@ -262,32 +285,55 @@ export function SiteProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isLoaded) {
-      const saveData = async () => {
-        try {
-          await fetch("/api/site-data", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(siteData),
-          })
+      const timeoutId = setTimeout(() => {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("siteData", JSON.stringify(siteData))
+          console.log("[v0] Site data saved to localStorage")
 
-          // Also save to localStorage as backup
-          if (typeof window !== "undefined") {
-            localStorage.setItem("siteData", JSON.stringify(siteData))
-          }
-        } catch (error) {
-          console.error("Error saving site data to server:", error)
-          // Fallback to localStorage only
-          if (typeof window !== "undefined") {
-            localStorage.setItem("siteData", JSON.stringify(siteData))
-          }
+          // Disparar evento customizado para sincronizar entre abas
+          window.dispatchEvent(
+            new CustomEvent("siteDataUpdated", {
+              detail: siteData,
+            }),
+          )
         }
-      }
+      }, 500) // Debounce de 500ms
 
-      saveData()
+      return () => clearTimeout(timeoutId)
     }
   }, [siteData, isLoaded])
+
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "siteData" && e.newValue) {
+        try {
+          const newData = JSON.parse(e.newValue)
+          setSiteData({
+            ...defaultSiteData,
+            ...newData,
+            requests: Array.isArray(newData.requests) ? newData.requests : [],
+          })
+          console.log("[v0] Site data synchronized from another tab")
+        } catch (error) {
+          console.error("Error synchronizing data:", error)
+        }
+      }
+    }
+
+    const handleCustomUpdate = (e: CustomEvent) => {
+      console.log("[v0] Site data updated in current tab")
+    }
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("storage", handleStorageChange)
+      window.addEventListener("siteDataUpdated", handleCustomUpdate as EventListener)
+
+      return () => {
+        window.removeEventListener("storage", handleStorageChange)
+        window.removeEventListener("siteDataUpdated", handleCustomUpdate as EventListener)
+      }
+    }
+  }, [])
 
   const updateSiteData = (data: Partial<SiteData>) => {
     setSiteData((prev) => ({ ...prev, ...data }))
@@ -383,31 +429,51 @@ export function SiteProvider({ children }: { children: React.ReactNode }) {
     }))
   }
 
-  return (
-    <SiteContext.Provider
-      value={{
-        siteData,
-        updateSiteData,
-        updateHero,
-        updateService,
-        updateProduct,
-        updateBlogPost,
-        updateContact,
-        updateCompany,
-        addService,
-        addProduct,
-        addBlogPost,
-        removeService,
-        removeProduct,
-        removeBlogPost,
-        addRequest,
-        updateRequestStatus,
-        removeRequest,
-      }}
-    >
-      {children}
-    </SiteContext.Provider>
-  )
+  const generateShareableUrl = () => {
+    if (typeof window !== "undefined") {
+      const configData = {
+        ...siteData,
+        requests: [], // Don't share requests for privacy
+      }
+      const encodedConfig = btoa(JSON.stringify(configData))
+      const shareUrl = `${window.location.origin}${window.location.pathname}?config=${encodedConfig}`
+
+      // Copy to clipboard
+      navigator.clipboard
+        .writeText(shareUrl)
+        .then(() => {
+          console.log("[v0] Shareable URL copied to clipboard")
+          alert("Link de compartilhamento copiado! Qualquer pessoa que acessar este link verá suas alterações.")
+        })
+        .catch(() => {
+          // Fallback: show URL in prompt
+          prompt("Copie este link para compartilhar suas alterações:", shareUrl)
+        })
+    }
+  }
+
+  const contextValue = {
+    siteData,
+    updateSiteData,
+    updateHero,
+    updateService,
+    updateProduct,
+    updateBlogPost,
+    updateContact,
+    updateCompany,
+    addService,
+    addProduct,
+    addBlogPost,
+    removeService,
+    removeProduct,
+    removeBlogPost,
+    addRequest,
+    updateRequestStatus,
+    removeRequest,
+    generateShareableUrl,
+  }
+
+  return <SiteContext.Provider value={contextValue}>{children}</SiteContext.Provider>
 }
 
 export function useSite() {

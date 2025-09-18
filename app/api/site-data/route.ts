@@ -1,36 +1,43 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { writeFile, readFile, mkdir } from "fs/promises"
-import { join } from "path"
 
-const DATA_DIR = join(process.cwd(), "data")
-const DATA_FILE = join(DATA_DIR, "site-data.json")
+// Como não temos banco de dados configurado, vamos usar uma abordagem híbrida
+// que funciona com localStorage no cliente
 
 export async function GET() {
   try {
-    // Ensure data directory exists
-    await mkdir(DATA_DIR, { recursive: true })
-
-    const data = await readFile(DATA_FILE, "utf-8")
-    return NextResponse.json(JSON.parse(data))
+    // Retorna dados vazios para forçar uso do localStorage
+    // Isso garante que cada usuário veja suas próprias alterações
+    return new NextResponse("{}", {
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    })
   } catch (error) {
-    // Return empty object if file doesn't exist
-    return NextResponse.json({})
+    console.error("[v0] API: Error in GET:", error)
+    return new NextResponse("{}", {
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const siteData = await request.json()
+    console.log("[v0] API: Data received for saving")
 
-    // Ensure data directory exists
-    await mkdir(DATA_DIR, { recursive: true })
-
-    // Save data to file
-    await writeFile(DATA_FILE, JSON.stringify(siteData, null, 2))
-
+    // Por enquanto, apenas confirmamos o recebimento
+    // Os dados são salvos no localStorage pelo cliente
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Error saving site data:", error)
-    return NextResponse.json({ error: "Failed to save data" }, { status: 500 })
+    console.error("[v0] API: Error in POST:", error)
+    return NextResponse.json({ error: "Failed to process data" }, { status: 500 })
   }
 }

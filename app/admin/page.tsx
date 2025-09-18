@@ -25,6 +25,9 @@ import {
   CheckCircle,
   Clock,
   X,
+  FileDown,
+  FileUp,
+  Share2,
 } from "lucide-react"
 
 export default function AdminPage() {
@@ -45,10 +48,51 @@ export default function AdminPage() {
     removeBlogPost,
     updateRequestStatus,
     removeRequest,
+    generateShareableUrl,
   } = useSite()
 
   const [activeTab, setActiveTab] = useState("geral")
   const [logoFile, setLogoFile] = useState<File | null>(null)
+
+  const handleExportData = () => {
+    const dataStr = JSON.stringify(siteData, null, 2)
+    const dataBlob = new Blob([dataStr], { type: "application/json" })
+    const url = URL.createObjectURL(dataBlob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `site-config-${new Date().toISOString().split("T")[0]}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    alert("Configurações exportadas com sucesso!")
+  }
+
+  const handleImportData = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        try {
+          const importedData = JSON.parse(e.target?.result as string)
+          // Validate that it's a valid site data structure
+          if (importedData.siteName && importedData.hero && importedData.services) {
+            // Update all site data
+            Object.keys(importedData).forEach((key) => {
+              updateSiteData({ [key]: importedData[key] })
+            })
+            alert("Configurações importadas com sucesso!")
+            window.location.reload() // Refresh to show all changes
+          } else {
+            alert("Arquivo inválido. Certifique-se de importar um arquivo de configuração válido.")
+          }
+        } catch (error) {
+          alert("Erro ao importar arquivo. Verifique se o arquivo está no formato correto.")
+        }
+      }
+      reader.readAsText(file)
+    }
+  }
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -137,6 +181,33 @@ export default function AdminPage() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <Button
+                variant="default"
+                onClick={generateShareableUrl}
+                className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+              >
+                <Share2 className="h-4 w-4" />
+                <span>Compartilhar Site</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleExportData}
+                className="flex items-center space-x-2 bg-transparent"
+              >
+                <FileDown className="h-4 w-4" />
+                <span>Exportar Config</span>
+              </Button>
+              <div>
+                <Input type="file" accept=".json" onChange={handleImportData} className="hidden" id="import-config" />
+                <Button
+                  variant="outline"
+                  onClick={() => document.getElementById("import-config")?.click()}
+                  className="flex items-center space-x-2"
+                >
+                  <FileUp className="h-4 w-4" />
+                  <span>Importar Config</span>
+                </Button>
+              </div>
               <Button onClick={handleSaveChanges} className="flex items-center space-x-2">
                 <Save className="h-4 w-4" />
                 <span>Salvar Alterações</span>
@@ -150,6 +221,17 @@ export default function AdminPage() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <h3 className="font-semibold text-green-900 mb-2">🚀 Compartilhamento Automático:</h3>
+          <ol className="text-sm text-green-800 space-y-1">
+            <li>1. Faça suas alterações no painel admin</li>
+            <li>2. Clique em "Compartilhar Site" para gerar um link automático</li>
+            <li>3. O link será copiado automaticamente - envie para qualquer pessoa</li>
+            <li>4. Quem acessar o link verá todas as suas alterações automaticamente!</li>
+          </ol>
+          <p className="text-xs text-green-700 mt-2">💡 Não precisa mais exportar/importar arquivos manualmente!</p>
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="geral" className="flex items-center space-x-2">
