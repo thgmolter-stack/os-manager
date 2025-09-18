@@ -1,13 +1,43 @@
 import { type NextRequest, NextResponse } from "next/server"
-
-// Como não temos banco de dados configurado, vamos usar uma abordagem híbrida
-// que funciona com localStorage no cliente
+import { createClient } from "@/lib/supabase/server"
 
 export async function GET() {
   try {
-    // Retorna dados vazios para forçar uso do localStorage
-    // Isso garante que cada usuário veja suas próprias alterações
-    return new NextResponse("{}", {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase.from("site_config").select("data").eq("id", "default").limit(1).single()
+
+    if (error) {
+      if (error.message.includes("Could not find the table")) {
+        console.log("[v0] API: Table 'site_config' not found. Please run the SQL script to create it.")
+        return NextResponse.json(
+          {
+            error: "TABLE_NOT_FOUND",
+            message: "Please run the SQL script to create the site_config table",
+          },
+          { status: 200 },
+        )
+      }
+
+      if (error.code === "PGRST116") {
+        console.log("[v0] API: No config found, returning defaults")
+        return NextResponse.json({})
+      }
+
+      console.error("[v0] API: Error loading from Supabase:", error.message)
+      return NextResponse.json(
+        {
+          error: "SUPABASE_ERROR",
+          message: "Using local storage fallback",
+        },
+        { status: 200 },
+      )
+    }
+
+    const configData = data?.data || {}
+    console.log("[v0] API: Site data loaded from Supabase")
+
+    return NextResponse.json(configData, {
       headers: {
         "Content-Type": "application/json",
         "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
@@ -17,27 +47,53 @@ export async function GET() {
     })
   } catch (error) {
     console.error("[v0] API: Error in GET:", error)
-    return new NextResponse("{}", {
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-        Pragma: "no-cache",
-        Expires: "0",
+    return NextResponse.json(
+      {
+        error: "SUPABASE_ERROR",
+        message: "Using local storage fallback",
       },
-    })
+      { status: 200 },
+    )
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const siteData = await request.json()
-    console.log("[v0] API: Data received for saving")
+    const supabase = await createClient()
 
-    // Por enquanto, apenas confirmamos o recebimento
-    // Os dados são salvos no localStorage pelo cliente
+    const { error } = await supabase.from("site_config").upsert({
+      id: "default",
+      data: siteData,
+      updated_at: new Date().toISOString(),
+    })
+
+    if (error) {
+      if (error.message.includes("Could not find the table")) {
+        console.log("[v0] API: Table 'site_config' not found. Data not saved to Supabase.")
+        return NextResponse.json(
+          {
+            error: "TABLE_NOT_FOUND",
+            message: "Please run the SQL script to create the site_config table",
+          },
+          { status: 200 },
+        )
+      }
+
+      console.error("[v0] API: Error updating Supabase:", error.message)
+      return NextResponse.json({ error: "Failed to save data" }, { status: 500 })
+    }
+
+    console.log("[v0] API: Site data saved to Supabase successfully")
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("[v0] API: Error in POST:", error)
-    return NextResponse.json({ error: "Failed to process data" }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: "SUPABASE_ERROR",
+        message: "Data not saved to Supabase",
+      },
+      { status: 200 },
+    )
   }
 }

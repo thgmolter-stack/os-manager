@@ -220,9 +220,10 @@ const SiteContext = createContext<SiteContextType | undefined>(undefined)
 export function SiteProvider({ children }: { children: React.ReactNode }) {
   const [siteData, setSiteData] = useState<SiteData>(defaultSiteData)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [useLocalStorage, setUseLocalStorage] = useState(false)
 
   useEffect(() => {
-    const loadData = () => {
+    const loadData = async () => {
       try {
         if (typeof window !== "undefined") {
           const urlParams = new URLSearchParams(window.location.search)
@@ -236,17 +237,7 @@ export function SiteProvider({ children }: { children: React.ReactNode }) {
                 ...decodedConfig,
                 requests: Array.isArray(decodedConfig.requests) ? decodedConfig.requests : [],
               })
-              // Save shared config to localStorage for persistence
-              localStorage.setItem(
-                "siteData",
-                JSON.stringify({
-                  ...defaultSiteData,
-                  ...decodedConfig,
-                  requests: Array.isArray(decodedConfig.requests) ? decodedConfig.requests : [],
-                }),
-              )
               console.log("[v0] Site data loaded from shared URL")
-              // Clean URL after loading
               window.history.replaceState({}, document.title, window.location.pathname)
               setIsLoaded(true)
               return
@@ -255,22 +246,67 @@ export function SiteProvider({ children }: { children: React.ReactNode }) {
             }
           }
 
-          const saved = localStorage.getItem("siteData")
-          if (saved) {
-            try {
-              const parsedData = JSON.parse(saved)
+          try {
+            const response = await fetch("/api/site-data", {
+              method: "GET",
+              headers: {
+                "Cache-Control": "no-cache",
+              },
+            })
+
+            if (response.ok) {
+              const serverData = await response.json()
+              if (serverData.error === "TABLE_NOT_FOUND") {
+                console.log("[v0] Supabase table not found, using localStorage fallback")
+                setUseLocalStorage(true)
+                const localData = localStorage.getItem("siteData")
+                if (localData) {
+                  const parsedData = JSON.parse(localData)
+                  setSiteData({
+                    ...defaultSiteData,
+                    ...parsedData,
+                    requests: Array.isArray(parsedData.requests) ? parsedData.requests : [],
+                  })
+                  console.log("[v0] Site data loaded from localStorage")
+                }
+              } else if (Object.keys(serverData).length > 0) {
+                setSiteData({
+                  ...defaultSiteData,
+                  ...serverData,
+                  requests: Array.isArray(serverData.requests) ? serverData.requests : [],
+                })
+                console.log("[v0] Site data loaded from Supabase")
+              } else {
+                console.log("[v0] No server data found, using defaults")
+              }
+            } else {
+              console.log("[v0] Failed to load from server, using localStorage fallback")
+              setUseLocalStorage(true)
+              const localData = localStorage.getItem("siteData")
+              if (localData) {
+                const parsedData = JSON.parse(localData)
+                setSiteData({
+                  ...defaultSiteData,
+                  ...parsedData,
+                  requests: Array.isArray(parsedData.requests) ? parsedData.requests : [],
+                })
+                console.log("[v0] Site data loaded from localStorage")
+              }
+            }
+          } catch (error) {
+            console.error("Error loading from server:", error)
+            console.log("[v0] Using localStorage fallback due to server error")
+            setUseLocalStorage(true)
+            const localData = localStorage.getItem("siteData")
+            if (localData) {
+              const parsedData = JSON.parse(localData)
               setSiteData({
                 ...defaultSiteData,
                 ...parsedData,
                 requests: Array.isArray(parsedData.requests) ? parsedData.requests : [],
               })
               console.log("[v0] Site data loaded from localStorage")
-            } catch (error) {
-              console.error("Error parsing saved data:", error)
-              setSiteData(defaultSiteData)
             }
-          } else {
-            console.log("[v0] No saved data found, using defaults")
           }
         }
       } catch (error) {
@@ -285,55 +321,79 @@ export function SiteProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isLoaded) {
-      const timeoutId = setTimeout(() => {
-        if (typeof window !== "undefined") {
-          localStorage.setItem("siteData", JSON.stringify(siteData))
-          console.log("[v0] Site data saved to localStorage")
-
-          // Disparar evento customizado para sincronizar entre abas
-          window.dispatchEvent(
-            new CustomEvent("siteDataUpdated", {
-              detail: siteData,
-            }),
-          )
+      const timeoutId = setTimeout(async () => {
+        if (useLocalStorage) {
+          try {
+            localStorage.setItem("siteData", JSON.stringify(siteData))
+            console.log("[v0] Site data saved to localStorage")
+            window.dispatchEvent(
+              new StorageEvent("storage", {
+                key: "siteData",
+                newValue: JSON.stringify(siteData),
+              }),
+            )
+          } catch (error) {
+            console.error("[v0] Error saving to localStorage:", error)
+          }
+          return
         }
-      }, 500) // Debounce de 500ms
+
+        try {
+          const response = await fetch("/api/site-data", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(siteData),
+          })
+
+          if (response.ok) {
+            const result = await response.json()
+            if (result.error === "TABLE_NOT_FOUND") {
+              console.log("[v0] Supabase table not found, switching to localStorage")
+              setUseLocalStorage(true)
+              localStorage.setItem("siteData", JSON.stringify(siteData))
+            } else {
+              console.log("[v0] Site data saved to Supabase successfully")
+            }
+          } else {
+            console.error("[v0] Failed to save site data to Supabase")
+            localStorage.setItem("siteData", JSON.stringify(siteData))
+            console.log("[v0] Site data saved to localStorage as fallback")
+          }
+        } catch (error) {
+          console.error("[v0] Error saving to Supabase:", error)
+          localStorage.setItem("siteData", JSON.stringify(siteData))
+          console.log("[v0] Site data saved to localStorage as fallback")
+        }
+      }, 1000)
 
       return () => clearTimeout(timeoutId)
     }
-  }, [siteData, isLoaded])
+  }, [siteData, isLoaded, useLocalStorage])
 
   useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "siteData" && e.newValue) {
-        try {
-          const newData = JSON.parse(e.newValue)
-          setSiteData({
-            ...defaultSiteData,
-            ...newData,
-            requests: Array.isArray(newData.requests) ? newData.requests : [],
-          })
-          console.log("[v0] Site data synchronized from another tab")
-        } catch (error) {
-          console.error("Error synchronizing data:", error)
+    if (useLocalStorage) {
+      const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === "siteData" && e.newValue) {
+          try {
+            const newData = JSON.parse(e.newValue)
+            setSiteData({
+              ...defaultSiteData,
+              ...newData,
+              requests: Array.isArray(newData.requests) ? newData.requests : [],
+            })
+            console.log("[v0] Site data synchronized from another tab")
+          } catch (error) {
+            console.error("Error parsing synchronized data:", error)
+          }
         }
       }
-    }
 
-    const handleCustomUpdate = (e: CustomEvent) => {
-      console.log("[v0] Site data updated in current tab")
-    }
-
-    if (typeof window !== "undefined") {
       window.addEventListener("storage", handleStorageChange)
-      window.addEventListener("siteDataUpdated", handleCustomUpdate as EventListener)
-
-      return () => {
-        window.removeEventListener("storage", handleStorageChange)
-        window.removeEventListener("siteDataUpdated", handleCustomUpdate as EventListener)
-      }
+      return () => window.removeEventListener("storage", handleStorageChange)
     }
-  }, [])
+  }, [useLocalStorage])
 
   const updateSiteData = (data: Partial<SiteData>) => {
     setSiteData((prev) => ({ ...prev, ...data }))
@@ -433,12 +493,11 @@ export function SiteProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== "undefined") {
       const configData = {
         ...siteData,
-        requests: [], // Don't share requests for privacy
+        requests: [],
       }
       const encodedConfig = btoa(JSON.stringify(configData))
       const shareUrl = `${window.location.origin}${window.location.pathname}?config=${encodedConfig}`
 
-      // Copy to clipboard
       navigator.clipboard
         .writeText(shareUrl)
         .then(() => {
@@ -446,7 +505,6 @@ export function SiteProvider({ children }: { children: React.ReactNode }) {
           alert("Link de compartilhamento copiado! Qualquer pessoa que acessar este link verá suas alterações.")
         })
         .catch(() => {
-          // Fallback: show URL in prompt
           prompt("Copie este link para compartilhar suas alterações:", shareUrl)
         })
     }
